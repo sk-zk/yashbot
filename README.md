@@ -1,4 +1,4 @@
-**yashbot** is a ~~bundle of glue code~~ tool for batch-processing YouTube videos for Audiosurf 2 faster and out-game. 
+**yashbot** is a ~~ball of glue code~~ tool for batch-processing YouTube videos for Audiosurf 2 faster and out-game. 
 
 ###Requirements:
 
