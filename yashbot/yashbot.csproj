@@ -48,10 +48,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="policy.2.0.taglib-sharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=db62eba44689b5b0, processorArchitecture=MSIL">
-      <HintPath>..\packages\taglib.2.1.0.0\lib\policy.2.0.taglib-sharp.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Steamworks.NET">
       <HintPath>..\..\..\..\Steamworks.NET-Standalone_7.0.0\Steamworks.NET-Standalone_7.0.0\Windows-x86\Steamworks.NET.dll</HintPath>
     </Reference>
@@ -100,7 +96,6 @@
     <Content Include="steam_appid.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="taglib-sharp.dll" />
     <Content Include="UnityMediaPlayer.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
