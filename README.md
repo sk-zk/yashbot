@@ -1,5 +1,7 @@
 **yashbot** is a ~~ball of glue code~~ tool for batch-processing YouTube videos for Audiosurf 2 faster and out-game. 
 
+Note that Steam has to be open to use it and that you will be shown as playing Audiosurf 2 while it's running.
+
 ###Requirements:
 
 BASS  
