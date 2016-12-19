@@ -31,18 +31,26 @@ namespace yashbot
 
             foreach (string arg in args)
             {
-                if (IsYoutubeId(arg))
+                try
                 {
-                    ProcessVideo(arg).Wait();
+                    if (IsYoutubeId(arg))
+                    {
+                        ProcessVideo(arg).Wait();
+                    }
+                    else if (System.IO.File.Exists(arg))
+                    {
+                        string[] ids = System.IO.File.ReadAllText(arg).Split();
+                        ProcessVideos(ids);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Don't know what to do with \"{0}\"", arg);
+                    }
                 }
-                else if (System.IO.File.Exists(arg))
+                catch (Exception ex)
                 {
-                    string[] ids = System.IO.File.ReadAllText(arg).Split();
-                    ProcessVideos(ids);
-                }
-                else
-                {
-                    Console.WriteLine("Don't know what to do with \"{0}\"", arg);
+                    Console.WriteLine("Something went wrong:");
+                    Console.WriteLine(ex.ToString());
                 }
             }
 
