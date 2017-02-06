@@ -14,8 +14,10 @@ namespace yashbot
     class YoutubeDl
     {
         readonly static string OUTPUT_FOLDER = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "yashbot");
+
+        static string errors = null;
 
         /// <summary>
         /// Downloads an audio track from a YouTube video as m4a.
@@ -24,20 +26,43 @@ namespace yashbot
         /// <returns>The path to the downloaded file.</returns>
         public static string CallYoutubeDl(string videoId)
         {
-            string tempfile = Path.Combine(OUTPUT_FOLDER, videoId + ".m4a");
+            errors = null;
+            string tempFile = Path.Combine(OUTPUT_FOLDER, videoId + ".m4a");
             ProcessStartInfo info = new ProcessStartInfo(
                  "youtube-dl.exe", "--ignore-config -f bestaudio -x --audio-format m4a --add-metadata -o " +
                  OUTPUT_FOLDER + "/%(id)s.%(ext)s " + videoId
                 );
             info.CreateNoWindow = true;
             info.UseShellExecute = false;
+            info.RedirectStandardOutput = true;
+            info.RedirectStandardError = true;
             Process process = new Process();
             process.StartInfo = info;
+            //process.OutputDataReceived += Process_OutputDataReceived;
+            process.ErrorDataReceived += Process_ErrorDataReceived;
             process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
             process.WaitForExit();
             process.Dispose();
-            return tempfile;
+            if(errors != null)
+            {
+                throw new YoutubeDlException(errors);
+            }
+            return tempFile;
+        }
+
+        /*private static void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        {
+
+        }*/
+
+        private static void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            errors += e.Data;
         }
 
     }
+
+
 }

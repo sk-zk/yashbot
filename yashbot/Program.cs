@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Specialized;
 using System.Text.RegularExpressions;
-using TagLib;
+using System.IO;
 using Steamworks;
 
 namespace yashbot
@@ -37,9 +37,9 @@ namespace yashbot
                     {
                         ProcessVideo(arg).Wait();
                     }
-                    else if (System.IO.File.Exists(arg))
+                    else if (File.Exists(arg))
                     {
-                        string[] ids = System.IO.File.ReadAllText(arg).Split();
+                        string[] ids = File.ReadAllText(arg).Split();
                         ProcessVideos(ids);
                     }
                     else
@@ -95,7 +95,7 @@ namespace yashbot
                 return false;
             }
 
-            if (System.IO.File.Exists(input))
+            if (File.Exists(input))
             {
                 return false;
             }
@@ -155,12 +155,22 @@ namespace yashbot
             {
                 Console.WriteLine("Processing {0} now", videoId);
                 Console.WriteLine("Downloading audio");
-                string ytAudio = YoutubeDl.CallYoutubeDl(videoId);
+                string ytAudioFile;
+                try
+                {
+                    ytAudioFile = YoutubeDl.CallYoutubeDl(videoId);
+                }
+                catch (YoutubeDlException yex)
+                {
+                    Console.WriteLine("youtube-dl encountered an error:");
+                    Console.WriteLine(yex.Message);
+                    return;
+                }
                 Console.WriteLine("Analyzing song");
-                File file = File.Create(ytAudio);
+                TagLib.File file = TagLib.File.Create(ytAudioFile);
                 float duration = (float)file.Properties.Duration.TotalSeconds;
                 file.Dispose();
-                List<float> sums = songLoader.DecodeSongSums(ytAudio, duration);
+                List<float> sums = songLoader.DecodeSongSums(ytAudioFile, duration);
                 Console.WriteLine("Uploading yash");
                 try
                 {

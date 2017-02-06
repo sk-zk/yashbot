@@ -3,8 +3,7 @@ using System.Runtime.Serialization;
 
 namespace yashbot
 {
-    [Serializable]
-    internal class YashNotFoundException : Exception
+    class YashNotFoundException : Exception
     {
         public YashNotFoundException()
         {

@@ -72,6 +72,7 @@
     <Compile Include="Yash.cs" />
     <Compile Include="YashNotFoundException.cs" />
     <Compile Include="YoutubeDl.cs" />
+    <Compile Include="YoutubeDlException.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
