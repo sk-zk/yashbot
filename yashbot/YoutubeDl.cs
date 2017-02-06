@@ -17,7 +17,7 @@ namespace yashbot
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "yashbot");
 
-        static string errors = null;
+        static string errors = "";
 
         /// <summary>
         /// Downloads an audio track from a YouTube video as m4a.
@@ -26,7 +26,7 @@ namespace yashbot
         /// <returns>The path to the downloaded file.</returns>
         public static string CallYoutubeDl(string videoId)
         {
-            errors = null;
+            errors = "";
             string tempFile = Path.Combine(OUTPUT_FOLDER, videoId + ".m4a");
             ProcessStartInfo info = new ProcessStartInfo(
                  "youtube-dl.exe", "--ignore-config -f bestaudio -x --audio-format m4a --add-metadata -o " +
@@ -45,7 +45,7 @@ namespace yashbot
             process.BeginErrorReadLine();
             process.WaitForExit();
             process.Dispose();
-            if(errors != null)
+            if(errors != "")
             {
                 throw new YoutubeDlException(errors);
             }
@@ -59,7 +59,13 @@ namespace yashbot
 
         private static void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
-            errors += e.Data;
+            if (e.Data != null)
+            {
+                if (e.Data.Trim() != "")
+                {
+                    errors += e.Data;
+                }
+            }
         }
 
     }
