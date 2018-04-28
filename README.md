@@ -2,7 +2,7 @@
 
 Note that Steam has to be open to use it and that you will be shown as playing Audiosurf 2 while it's running.
 
-###Requirements:
+### Requirements:
 
 BASS  
 CSteamworks  
@@ -13,13 +13,13 @@ TagLib#
 UnityMediaPlayer.dll  
 youtube-dl  
 
-###Installation:
+### Installation:
 
 1) Copy bass.dll, steam_api.dll and UnityMediaPlayer.dll from steamapps\common\Audiosurf 2 to the yashbot directory.
 
 2) Download ffmpeg and place ffmpeg.exe and ffprobe.exe in the yashbot directory.
 
-###Usage examples:
+### Usage examples:
 
 To process a single video:
 
