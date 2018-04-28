@@ -12,7 +12,6 @@ using Steamworks;
 
 namespace yashbot
 {
-
     class Program
     {
         static SongLoader songLoader = new SongLoader();
@@ -44,13 +43,13 @@ namespace yashbot
                     }
                     else
                     {
-                        Console.WriteLine("Don't know what to do with \"{0}\"", arg);
+                        Console.Error.WriteLine("Don't know what to do with \"{0}\"", arg);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Something went wrong:");
-                    Console.WriteLine(ex.ToString());
+                    Console.Error.WriteLine("Something went wrong:");
+                    Console.Error.WriteLine(ex.ToString());
                 }
             }
 
@@ -79,7 +78,7 @@ namespace yashbot
             }
             else
             {
-                Console.WriteLine("Don't know what to do with \"{0}\"", videoId);
+                Console.Error.WriteLine("Don't know what to do with \"{0}\"", videoId);
             }
         }
 
@@ -112,7 +111,7 @@ namespace yashbot
             Console.WriteLine("Getting Steam session");
             if (!SteamAPI.Init())
             {
-                Console.WriteLine("SteamAPI.Init() failed");
+                Console.Error.WriteLine("SteamAPI.Init() failed");
                 Environment.Exit(1);
             }
 
@@ -121,27 +120,36 @@ namespace yashbot
             HAuthTicket authTicket = SteamUser.GetAuthSessionTicket(ticket, ticket.Length, out ticketLength);
             if (authTicket == HAuthTicket.Invalid)
             {
-                Console.WriteLine("Got invalid ticket");
+                Console.Error.WriteLine("Got invalid ticket");
                 Environment.Exit(1);
             }
             string steamTicket = BitConverter.ToString(ticket, 0, (int)ticketLength).Replace("-", "").ToLowerInvariant();
 
             // 2) Get a session ID from the AS2 server
-            string result;
+            string result = "";
             using (WebClient client = new WebClient())
             {
-                byte[] response = client.UploadValues("http://audiosurf2.com/as/airgame_steamAuthenticate4.php",
-                    new NameValueCollection()
-                    {
+                try
+                {
+                    byte[] response = client.UploadValues("http://audiosurf2.com/as/airgame_steamAuthenticate4.php",
+                        new NameValueCollection()
+                        {
                         {"username", "yashbot"},
                         {"session", ""},
                         {"steamid", SteamUser.GetSteamID().ToString()},
                         {"steamticket", steamTicket},
                         {"steamfriends", ""},
 
-                    });
+                        });
 
-                result = Encoding.UTF8.GetString(response);
+                    result = Encoding.UTF8.GetString(response);
+                }
+                catch (WebException wex)
+                {
+                    Console.Error.WriteLine("Couldn't get AS2 session ID:");
+                    Console.Error.WriteLine(wex.ToString());
+                    Environment.Exit(1);
+                }
             }
             string session = Regex.Match(result, "token='(.+?)'").Groups[1].Value; // cthulhu > xml parsers
             return new AuthInfo(SteamUser.GetSteamID().ToString(), steamTicket, session);
@@ -149,7 +157,6 @@ namespace yashbot
 
         static async Task ProcessVideo(string videoId)
         {
-
             Console.WriteLine("Looking up " + videoId);
             if (!Yash.YashExists(videoId))
             {
@@ -161,9 +168,9 @@ namespace yashbot
                     ytAudioFile = YoutubeDl.CallYoutubeDl(videoId);
                 }
                 catch (YoutubeDlException yex)
-                {
-                    Console.WriteLine("youtube-dl encountered an error:");
-                    Console.WriteLine(yex.Message);
+                {                   
+                    Console.Error.WriteLine("youtube-dl encountered an error:");
+                    Console.Error.WriteLine(yex.Message);
                     return;
                 }
                 Console.WriteLine("Analyzing song");
@@ -179,10 +186,9 @@ namespace yashbot
                 }
                 catch (WebException wex)
                 {
-                    Console.WriteLine("Something went wrong, here's the response:");
-                    Console.WriteLine(wex.ToString());
+                    Console.Error.WriteLine("Something went wrong, here's the response:");
+                    Console.Error.WriteLine(wex.ToString());
                 }
-
             }
             else
             {
@@ -191,7 +197,6 @@ namespace yashbot
 
             Console.WriteLine("Done\n");
         }
-
 
     }
 }
