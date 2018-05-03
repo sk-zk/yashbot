@@ -18,7 +18,7 @@ namespace yashbot
         static AuthInfo authInfo;
 
         static void Main(string[] args)
-        {
+        {           
             if (args.Length == 0)
             {
                 Console.WriteLine("Please provide at least one video ID or a text file containing video IDs.");
@@ -28,7 +28,22 @@ namespace yashbot
             authInfo = Login();
             Console.WriteLine();
 
-            foreach (string arg in args)
+            var isProtocolHandler = false;
+            string[] videoIds;
+
+            // protocol handler
+            if (args[0].StartsWith("yashbot://"))
+            {
+                isProtocolHandler = true;
+                var videoIdStr = args[0].Substring(10).Replace("/", "");
+                videoIds = videoIdStr.Split(',');
+            }
+            else
+            {
+                videoIds = args;
+            }
+
+            foreach (string arg in videoIds)
             {
                 try
                 {
@@ -36,14 +51,14 @@ namespace yashbot
                     {
                         ProcessVideo(arg).Wait();
                     }
-                    else if (File.Exists(arg))
+                    else if (!isProtocolHandler && File.Exists(arg))
                     {
                         string[] ids = File.ReadAllText(arg).Split();
                         ProcessVideos(ids);
                     }
                     else
                     {
-                        Console.Error.WriteLine("Don't know what to do with \"{0}\"", arg);
+                        Console.Error.WriteLine("Don't know what to do with \"{0}\"\n", arg);
                     }
                 }
                 catch (Exception ex)
@@ -51,6 +66,12 @@ namespace yashbot
                     Console.Error.WriteLine("Something went wrong:");
                     Console.Error.WriteLine(ex.ToString());
                 }
+            }
+
+            if(isProtocolHandler)
+            {
+                Console.WriteLine("Press any key to exit ...");
+                Console.ReadKey();
             }
 
             #if DEBUG
@@ -78,7 +99,7 @@ namespace yashbot
             }
             else
             {
-                Console.Error.WriteLine("Don't know what to do with \"{0}\"", videoId);
+                Console.Error.WriteLine("Don't know what to do with \"{0}\"\n", videoId);
             }
         }
 
