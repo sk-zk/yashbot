@@ -70,7 +70,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SongLoader.cs" />
     <Compile Include="Yash.cs" />
-    <Compile Include="YashNotFoundException.cs" />
+    <Compile Include="YashApi.cs" />
+    <Compile Include="YoutubeApi.cs" />
     <Compile Include="YoutubeDl.cs" />
     <Compile Include="YoutubeDlException.cs" />
   </ItemGroup>

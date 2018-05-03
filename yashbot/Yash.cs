@@ -1,117 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace yashbot
 {
-
     /// <summary>
-    /// For downloading & uploading Youtube ASHes.
+    /// A YouTube ASH.
     /// </summary>
-    class Yash
+    public class Yash
     {
-        const string DOWNLOAD_URL = "http://audiosurf2.com/shield/download_yash.php";
-        const string UPLOAD_URL = "http://audiosurf2.com/shield/upload_yashW.php";
+        /// <summary>
+        /// The sums of this yash.
+        /// </summary>
+        public List<float> Sums;
 
         /// <summary>
-        /// Fetches the ash sums of a Youtube video from the AS2 server.
+        /// The duration of the song this yash belongs to.
         /// </summary>
-        /// <param name="videoId">The ID of the video.</param>
-        /// <returns>The ash sums of this video.</returns>
-        public static float[] GetYash(string videoId)
+        public float Duration; // in seconds
+
+        public Yash()
         {
-            using (WebClient client = new WebClient())
-            {
-                byte[] response = DownloadYash(videoId);
-
-                if (response.Length == 0)
-                {
-                    // empty response = video hasn't been analyzed by anyone yet.
-                    throw new YashNotFoundException();
-                }
-
-                float duration = BitConverter.ToSingle(response, 32 * 1); // in seconds
-                int sumAmount = BitConverter.ToInt32(response, 32 * 2);
-
-                List<float> hashes = new List<float>();
-                for (int i = 32 * 3; i < response.Length; i += 4)
-                {
-                    hashes.Add(BitConverter.ToSingle(response, i));
-                }
-
-                return hashes.ToArray();
-            }
-        }
-
-        private static byte[] DownloadYash(string videoId)
-        {
-            using (WebClient client = new WebClient())
-            {
-                byte[] response = client.UploadValues(DOWNLOAD_URL,
-                    new NameValueCollection() { { "id", videoId } }
-                );
-                return response;
-            }
-        }
-
-        /// <summary>
-        /// Checks if a video has been processed yet,
-        /// </summary>
-        /// <param name="videoId">The ID of the video.</param>
-        /// <returns>Whether or not this video has been processed.</returns>
-        public static bool YashExists(string videoId)
-        {
-            byte[] response = DownloadYash(videoId);
-            return response.Length != 0;
 
         }
 
-        /// <summary>
-        /// Uploads ash sums of a video to the AS2 server.
-        /// </summary>
-        /// <param name="videoId">The ID of the video.</param>
-        /// <param name="sums">The ash sums of the video.</param>
-        /// <param name="duration">The duration of the video in seconds.</param>
-        public static async Task UploadYash(string videoId, List<float> sums, float duration, AuthInfo authInfo)
+        public Yash(List<float> sums, float duration)
         {
-            const int HEADER_SIZE = 3 * 4;
-            var sumBytes = new byte[HEADER_SIZE + (sums.Count() * 4)];
-            Buffer.BlockCopy(BitConverter.GetBytes(1), 0, sumBytes, 0, 4);
-            Buffer.BlockCopy(BitConverter.GetBytes(duration), 0, sumBytes, 1 * 4, 4);
-            Buffer.BlockCopy(BitConverter.GetBytes(sums.Count), 0, sumBytes, 2 * 4, 4);
-            Buffer.BlockCopy(sums.ToArray(), 0, sumBytes, 3 * 4, sums.Count * 4);
-
-            HttpClient httpClient = new HttpClient();
-            MultipartFormDataContent form = new MultipartFormDataContent();
-
-            form.Add(new StringContent(videoId), "id");
-            StreamContent sc = new StreamContent(new MemoryStream(sumBytes));
-            sc.Headers.Add("Content-Type", "application/octet-stream");
-            sc.Headers.Add("Content-Disposition", "form-data; name=\"yash\"; filename=\"yash.dat\"");
-            form.Add(sc);
-            form.Add(new StringContent(authInfo.Username), "username");
-            form.Add(new StringContent(authInfo.SteamId), "steamid");
-            form.Add(new StringContent(authInfo.Session), "session");
-            form.Add(new StringContent(authInfo.SteamTicket), "steamticket");
-            HttpResponseMessage response = await httpClient.PostAsync(UPLOAD_URL, form);
-
-            response.EnsureSuccessStatusCode();
-            byte[] bodyBytes = await response.Content.ReadAsByteArrayAsync();
-            string body = Encoding.UTF8.GetString(bodyBytes); // workaround for github.com/dotnet/corefx/issues/5014
-            if (!body.Contains("</emptyisgood>"))
-            {
-                throw new WebException(body);
-            }
-            httpClient.Dispose();
-
-        }
-
-
+            Sums = sums;
+            Duration = duration;
+        } 
+    
     }
 }

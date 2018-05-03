@@ -158,44 +158,63 @@ namespace yashbot
         static async Task ProcessVideo(string videoId)
         {
             Console.WriteLine("Looking up " + videoId);
-            if (!Yash.YashExists(videoId))
+            var yash = YashApi.GetYash(videoId);
+            if (yash == null || yash.Sums.Count == 0)
             {
-                Console.WriteLine("Processing {0} now", videoId);
-                Console.WriteLine("Downloading audio");
-                string ytAudioFile;
-                try
-                {
-                    ytAudioFile = YoutubeDl.CallYoutubeDl(videoId);
-                }
-                catch (YoutubeDlException yex)
-                {                   
-                    Console.Error.WriteLine("youtube-dl encountered an error:");
-                    Console.Error.WriteLine(yex.Message);
-                    return;
-                }
-                Console.WriteLine("Analyzing song");
-                TagLib.File file = TagLib.File.Create(ytAudioFile);
-                float duration = (float)file.Properties.Duration.TotalSeconds;
-                file.Dispose();
-                List<float> sums = songLoader.DecodeSongSums(ytAudioFile, duration);
-                Console.WriteLine("Uploading yash");
-                try
-                {
-                    await Yash.UploadYash(videoId, sums, duration, authInfo);
-                    Console.WriteLine("Upload successful");
-                }
-                catch (WebException wex)
-                {
-                    Console.Error.WriteLine("Something went wrong, here's the response:");
-                    Console.Error.WriteLine(wex.ToString());
-                }
+                await CreateAndUploadYash(videoId);
             }
             else
             {
-                Console.WriteLine("{0} has already been processed", videoId);
+                Console.WriteLine("{0} has already been processed.\nChecking duration", videoId);
+                // The game ignores existing yashes and forces a resync if the length doesn't match
+                // so we'll deal with that, too.
+                // Hopefully this won't accidentally overwrite working yashes
+                var ytDuration = YoutubeApi.GetVideoDuration(videoId, authInfo);
+                if (Math.Abs(yash.Duration - ytDuration) < 1.05f)
+                {
+                    Console.WriteLine("Duration is correct");
+                }
+                else
+                {
+                    Console.WriteLine("Existing yash seems corrupt; overwriting");
+                    await CreateAndUploadYash(videoId);
+                }
             }
 
             Console.WriteLine("Done\n");
+        }
+
+        static async Task CreateAndUploadYash(string videoId)
+        {
+            Console.WriteLine("Processing {0} now", videoId);
+            Console.WriteLine("Downloading audio");
+            string ytAudioFile;
+            try
+            {
+                ytAudioFile = YoutubeDl.CallYoutubeDl(videoId);
+            }
+            catch (YoutubeDlException yex)
+            {
+                Console.Error.WriteLine("youtube-dl encountered an error:");
+                Console.Error.WriteLine(yex.Message);
+                return;
+            }
+            Console.WriteLine("Analyzing song");
+            TagLib.File file = TagLib.File.Create(ytAudioFile);
+            float duration = (float)file.Properties.Duration.TotalSeconds;
+            file.Dispose();
+            List<float> sums = songLoader.DecodeSongSums(ytAudioFile, duration);
+            Console.WriteLine("Uploading yash");
+            try
+            {
+                await YashApi.UploadYash(videoId, sums, duration, authInfo);
+                Console.WriteLine("Upload successful");
+            }
+            catch (WebException wex)
+            {
+                Console.Error.WriteLine("Something went wrong, here's the response:");
+                Console.Error.WriteLine(wex.ToString());
+            }
         }
 
     }
